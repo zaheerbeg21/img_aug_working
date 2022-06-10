@@ -17,9 +17,7 @@ OPERATIONS = [FlipH, FlipV, Translate, Rotate, Blur]
 
 '''
 Augmented files will have names matching the regex below, eg
-
     original__rot90__crop1__flipv.jpg
-
 '''
 AUGMENTED_FILE_REGEX = re.compile('^.*(__.+)+\\.[^\\.]+$')
 EXTENSION_REGEX = re.compile('|'.join(['.*\\.' + n + '$' for n in EXTENSIONS]), re.IGNORECASE)
@@ -29,6 +27,7 @@ counter = None
 
 saved_path = 'electric_splitted_images'
 
+
 def build_augmented_file_name(original_name, ops):
     root, ext = os.path.splitext(original_name)
     result = root
@@ -36,15 +35,16 @@ def build_augmented_file_name(original_name, ops):
         result += '__' + op.code
     return result + ext
 
-def work(d, f, op_lists):
+
+def work(d, f, ops_lists):
     try:
-        in_path = os.path.join(d,f)
-        for op_list in op_lists:
+        in_path = os.path.join(d, f)
+        for op_lst in ops_lists:
             out_file_name = build_augmented_file_name(f, op_list)
-            if isfile(os.path.join(d,out_file_name)):
+            if isfile(os.path.join(d, out_file_name)):
                 continue
             img = imread(in_path)
-            for op in op_list:
+            for op in op_lst:
                 img = op.process(img)
             imsave(os.path.join(d, out_file_name), img)
 
@@ -52,8 +52,10 @@ def work(d, f, op_lists):
     except:
         traceback.print_exc(file=sys.stdout)
 
+
 def process(dir, file, op_lists):
     thread_pool.apply_async(work, (dir, file, op_lists))
+
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:
@@ -87,13 +89,13 @@ if __name__ == '__main__':
     print('Thread pool initialised with {} worker{}'.format(WORKER_COUNT, '' if WORKER_COUNT == 1 else 's'))
 
     matches = []
-    
+
     for dir_info in os.walk(image_dir):
         dir_name, _, file_names = dir_info
         print(dir_info)
-   
+
         print('Processing {}...'.format(dir_name))
-        
+
         for file_name in file_names:
             if EXTENSION_REGEX.match(file_name):
                 if AUGMENTED_FILE_REGEX.match(file_name):
